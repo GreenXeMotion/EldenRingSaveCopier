@@ -19,7 +19,7 @@ namespace EldenRingSaveCopy.Saves.Model
         private const int CHAR_NAME_LENGTH = 0x22;
         private const int CHAR_LEVEL_LOCATION = 0x22;
         private const int CHAR_PLAYED_START_INDEX = 0x26;
-        
+
 
 
         private bool active;
@@ -34,6 +34,7 @@ namespace EldenRingSaveCopy.Saves.Model
             this.active = false;
             this.characterName = string.Empty;
             this.saveData = new byte[0];
+            this.headerData = new byte[0];
             this.id = Guid.NewGuid();
             this.index = -1;
         }

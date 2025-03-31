@@ -24,6 +24,8 @@ namespace EldenRingSaveCopy
             targetFile = new byte[0];
             sourceID = new byte[8];
             targetID = new byte[8];
+            sourcePath = string.Empty;
+            targetPath = string.Empty;
         }
 
         public byte[] SourceFile {

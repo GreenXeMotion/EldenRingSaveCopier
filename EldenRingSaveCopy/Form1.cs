@@ -15,6 +15,10 @@ namespace EldenRingSaveCopy
     public partial class Form1 : Form
     {
         private FileManager _fileManager;
+        private readonly BindingList<ISaveGame> sourceSaveGames = new BindingList<ISaveGame>();
+        private readonly BindingList<ISaveGame> targetSaveGames = new BindingList<ISaveGame>();
+        private ISaveGame selectedSourceSave = new NullSaveGame();
+        private ISaveGame selectedTargetSave = new NullSaveGame();
 
         public const int WM_NCLBUTTONDOWN = 0xA1;
         public const int HT_CAPTION = 0x2;
@@ -23,22 +27,16 @@ namespace EldenRingSaveCopy
         private const int MESSAGE_INFO = 1;
         private const int MESSAGE_SUCCESS = 2;
 
-        private BindingList<ISaveGame> sourceSaveGames = new BindingList<ISaveGame>();
-        private BindingList<ISaveGame> targetSaveGames = new BindingList<ISaveGame>();
-
-        private ISaveGame selectedSourceSave = new NullSaveGame();
-        private ISaveGame selectedTargetSave = new NullSaveGame();
-
         [DllImportAttribute("user32.dll")]
         public static extern int SendMessage(IntPtr hWnd,
                  int Msg, int wParam, int lParam);
         [DllImportAttribute("user32.dll")]
         public static extern bool ReleaseCapture();
 
-        private void Form1_MouseDown(object sender,
+        private void Form1_MouseDown(object? sender,
         System.Windows.Forms.MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left)
+            if (e.Button == MouseButtons.Left && sender != null)
             {
                 ReleaseCapture();
                 SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
@@ -48,13 +46,14 @@ namespace EldenRingSaveCopy
         public Form1()
         {
             InitializeComponent();
+            _fileManager = new FileManager();
             showAdditionalInfoMessage(MESSAGE_INFO, "Select Source and Destination files and characters");
         }
 
         // Tries to read the current windows user name and if it suceeds at it, it uses it in the default Elden Ring savefile location
         private void setCurrentUserDirectory(ref OpenFileDialog currentDialog)
         {
-            string nameDirectory = null;
+            string? nameDirectory = null;
             try
             {
                 nameDirectory = "C:\\Users\\" + Environment.UserName + "\\AppData\\Roaming\\EldenRing";
@@ -94,7 +93,7 @@ namespace EldenRingSaveCopy
                     if(sourceSaveGames.Count > 0)
                     {
                         fromSaveSlot.SelectedIndex = 0;
-                        this.selectedSourceSave = (ISaveGame)fromSaveSlot.SelectedItem;
+                        this.selectedSourceSave = fromSaveSlot.SelectedItem as ISaveGame ?? new NullSaveGame();
                         showAdditionalInfoMessage(MESSAGE_INFO, "Source savegame file loaded correctly.");
                     }
                 }
@@ -135,7 +134,7 @@ namespace EldenRingSaveCopy
                     if (targetSaveGames.Count > 0)
                     {
                         toSaveSlot.SelectedIndex = 0;
-                        this.selectedTargetSave = (ISaveGame)toSaveSlot.SelectedItem;
+                        this.selectedTargetSave = toSaveSlot.SelectedItem as ISaveGame ?? new NullSaveGame();
                         showAdditionalInfoMessage(MESSAGE_INFO, "Destination savegame file loaded correctly.");
                     }
                 }
@@ -150,18 +149,19 @@ namespace EldenRingSaveCopy
 
         private void CheckButtonState()
         {
-            if (_fileManager.SourceFile.Length > 0 && _fileManager.TargetFile.Length > 0 
-                && _fileManager.SourcePath != _fileManager.TargetPath &&
-                this.selectedSourceSave.Id != Guid.Empty && this.selectedTargetSave.Id != Guid.Empty)
+            if (_fileManager?.SourceFile != null && _fileManager.TargetFile != null &&
+                _fileManager.SourceFile.Length > 0 && _fileManager.TargetFile.Length > 0 &&
+                _fileManager.SourcePath != _fileManager.TargetPath &&
+                selectedSourceSave?.Id != Guid.Empty && selectedTargetSave?.Id != Guid.Empty)
             {
                 copyButton.Enabled = true;
                 copyButton.BackColor = Color.Goldenrod;
                 copyButton.Text =
                     "Copy source character "
-                    + (this.selectedSourceSave.CharacterName.Contains("Slot ") ? this.selectedSourceSave.CharacterName :
-                    this.selectedSourceSave.CharacterName.Split('\0')[0])
-                    + (this.selectedTargetSave.CharacterName.Contains("Slot ") ? " on destination file " + this.selectedTargetSave.CharacterName :
-                    " over destination character " + this.selectedTargetSave.CharacterName.Split('\0')[0]);
+                    + (this.selectedSourceSave?.CharacterName?.Contains("Slot ") == true ? this.selectedSourceSave.CharacterName :
+                    this.selectedSourceSave?.CharacterName?.Split('\0')[0] ?? "Unknown")
+                    + (this.selectedTargetSave?.CharacterName?.Contains("Slot ") == true ? " on destination file " + this.selectedTargetSave.CharacterName :
+                    " over destination character " + (this.selectedTargetSave?.CharacterName?.Split('\0')[0] ?? "Unknown"));
             }
             else
             {
@@ -173,28 +173,29 @@ namespace EldenRingSaveCopy
         private void Form1_Load(object sender, EventArgs e)
         {
             titleBar.MouseDown += Form1_MouseDown;
-            _fileManager = new FileManager();
 
             fromSaveSlot.DisplayMember = "CharacterName";
-            //fromSaveSlot.DataSource = this.sourceSaveGames;
             fromSaveSlot.DataSource = new BindingSource() { DataSource = this.sourceSaveGames }.DataSource;
             toSaveSlot.DisplayMember = "CharacterName";
-            //toSaveSlot.DataSource = this.targetSaveGames;
             toSaveSlot.DataSource = new BindingSource() { DataSource = this.targetSaveGames }.DataSource;
         }
 
         private void fromSaveSlot_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var ComboBox = (ComboBox)sender;
-            this.selectedSourceSave = (ISaveGame)ComboBox.SelectedItem;
-            CheckButtonState();
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is ISaveGame save)
+            {
+                this.selectedSourceSave = save;
+                CheckButtonState();
+            }
         }
 
         private void toSaveSlot_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var ComboBox = (ComboBox)sender;
-            this.selectedTargetSave = (ISaveGame)ComboBox.SelectedItem;
-            CheckButtonState();
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is ISaveGame save)
+            {
+                this.selectedTargetSave = save;
+                CheckButtonState();
+            }
         }
 
         private void CreateFileBackup(string path, byte[] file)
@@ -230,7 +231,7 @@ namespace EldenRingSaveCopy
                 byte[] newSave = new byte[_fileManager.TargetFile.Length];
 
                 //Create temp working file
-                Array.Copy(_fileManager.TargetFile, newSave, _fileManager.TargetFile.Length);       
+                Array.Copy(_fileManager.TargetFile, newSave, _fileManager.TargetFile.Length);
 
                 //Replace steam id in the source save with the steam id of the target save
                 foreach (int idLocation in sourceSave.SaveData.StartingIndex(_fileManager.SourceID))
@@ -253,7 +254,10 @@ namespace EldenRingSaveCopy
                     //Get slot checksum
                     md5.ComputeHash(sourceSave.SaveData);
                     //Write checksum to temp target file
-                    Array.Copy(md5.Hash, 0, newSave, SlotStartIndex(targetSave) - 0x10, 0x10);
+                    if (md5.Hash != null)
+                        Array.Copy(md5.Hash, 0, newSave, SlotStartIndex(targetSave) - 0x10, 0x10);
+                    else
+                        throw new InvalidOperationException("Failed to compute MD5 hash");
                     //get header checksum
                     md5.ComputeHash(newSave.Skip(SaveGame.SAVE_HEADERS_SECTION_START_INDEX).Take(SaveGame.SAVE_HEADERS_SECTION_LENGTH).ToArray());
                     //Write headers checksum
@@ -287,7 +291,7 @@ namespace EldenRingSaveCopy
                 byte[] err = Encoding.Default.GetBytes(_e.Message);
                 File.WriteAllBytes(_fileManager.TargetPath.Replace("ER0000.sl2", "Error.log"), err);
             }
-            
+
         }
 
         private void showAdditionalInfoMessage(int type, string message)
