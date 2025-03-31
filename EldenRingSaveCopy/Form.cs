@@ -1,24 +1,21 @@
-﻿using System;
-using System.ComponentModel;
-using System.Drawing;
-using System.Linq;
+﻿using System.ComponentModel;
 using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Runtime.InteropServices;
-using System.IO;
 using System.Security.Cryptography;
 using EldenRingSaveCopy.Saves.Model;
+using EldenRingSaveCopy.Backup;
 
 namespace EldenRingSaveCopy
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
         private FileManager _fileManager;
         private readonly BindingList<ISaveGame> sourceSaveGames = new BindingList<ISaveGame>();
         private readonly BindingList<ISaveGame> targetSaveGames = new BindingList<ISaveGame>();
         private ISaveGame selectedSourceSave = new NullSaveGame();
         private ISaveGame selectedTargetSave = new NullSaveGame();
+        private readonly IBackupManager _backupManager;
+        private const string DEFAULT_ERROR_MESSAGE = "An unexpected error occurred";
 
         public const int WM_NCLBUTTONDOWN = 0xA1;
         public const int HT_CAPTION = 0x2;
@@ -33,7 +30,11 @@ namespace EldenRingSaveCopy
         [DllImportAttribute("user32.dll")]
         public static extern bool ReleaseCapture();
 
-        private void Form1_MouseDown(object? sender,
+        private readonly ToolTip _toolTip = new ToolTip();
+        private readonly StatusStrip _statusStrip = new StatusStrip();
+        private readonly ToolStripStatusLabel _statusLabel = new ToolStripStatusLabel();
+
+        private void MainForm_MouseDown(object? sender,
         System.Windows.Forms.MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left && sender != null)
@@ -43,11 +44,168 @@ namespace EldenRingSaveCopy
             }
         }
 
-        public Form1()
+        private string? FindSaveFile()
+        {
+            string exePath = AppDomain.CurrentDomain.BaseDirectory;
+            string[] saveFiles = Directory.GetFiles(exePath, "ER0000.sl2")
+                                          .Concat(Directory.GetFiles(exePath, "ER0000.co2"))
+                                          .ToArray();
+            return saveFiles.Length > 0 ? saveFiles[0] : null;
+        }
+
+        private bool LoadSaveFile(string path, bool isSource)
+        {
+            try
+            {
+                var fileBytes = File.ReadAllBytes(path);
+                InitializeFileManager(path, fileBytes, isSource);
+                LoadSaveSlots(fileBytes, isSource);
+                return UpdateUIAfterLoad(isSource);
+            }
+            catch (Exception ex)
+            {
+                HandleLoadError(ex, isSource);
+                return false;
+            }
+        }
+
+        private void InitializeFileManager(string path, byte[] fileBytes, bool isSource)
+        {
+            if (isSource)
+            {
+                _fileManager.SourcePath = path;
+                _fileManager.SourceFile = fileBytes;
+                sourceFilePath.Text = path;
+            }
+            else
+            {
+                _fileManager.TargetPath = path;
+                _fileManager.TargetFile = fileBytes;
+                targetFilePath.Text = path;
+            }
+        }
+
+        private void LoadSaveSlots(byte[] fileBytes, bool isSource)
+        {
+            var saveGames = isSource ? sourceSaveGames : targetSaveGames;
+            saveGames.Clear();
+
+            for (int i = 0; i < 10; i++)
+            {
+                var newSave = new SaveGame();
+                newSave.LoadData(fileBytes, i);
+
+                if (!isSource || newSave.Active)
+                {
+                    if (!isSource && !newSave.Active)
+                    {
+                        newSave.CharacterName = $"Slot {i + 1}";
+                    }
+                    saveGames.Add(newSave);
+                }
+            }
+        }
+
+        private bool UpdateUIAfterLoad(bool isSource)
+        {
+            var saveGames = isSource ? sourceSaveGames : targetSaveGames;
+            var comboBox = isSource ? fromSaveSlot : toSaveSlot;
+
+            if (saveGames.Count > 0)
+            {
+                comboBox.SelectedIndex = 0;
+                if (isSource)
+                {
+                    selectedSourceSave = comboBox.SelectedItem as ISaveGame ?? new NullSaveGame();
+                    showAdditionalInfoMessage(MESSAGE_INFO, "Source savegame file loaded successfully.");
+                }
+                else
+                {
+                    selectedTargetSave = comboBox.SelectedItem as ISaveGame ?? new NullSaveGame();
+                    showAdditionalInfoMessage(MESSAGE_INFO, "Target savegame file loaded successfully.");
+                }
+                return true;
+            }
+            else if (isSource)
+            {
+                showAdditionalInfoMessage(MESSAGE_ERROR, "No active save slots found in source file.");
+            }
+            return false;
+        }
+
+        private void HandleLoadError(Exception ex, bool isSource)
+        {
+            var fileType = isSource ? "source" : "target";
+            LogError($"Failed to load {fileType} savegame file", ex);
+            showAdditionalInfoMessage(MESSAGE_ERROR, $"Failed to load {fileType} savegame file: {ex.Message}");
+
+            if (isSource)
+                sourceFilePath.Text = "Failed to load";
+            else
+                targetFilePath.Text = "Failed to load";
+        }
+
+        public MainForm()
         {
             InitializeComponent();
             _fileManager = new FileManager();
-            showAdditionalInfoMessage(MESSAGE_INFO, "Select Source and Destination files and characters");
+            _backupManager = new BackupManager();  // Changed from DefaultBackupManager to BackupManager
+
+            // Configure tooltips
+            _toolTip.SetToolTip(fromSaveSlot, "Select the character you want to copy from");
+            _toolTip.SetToolTip(toSaveSlot, "Select the slot where you want to copy the character to");
+            _toolTip.SetToolTip(copyButton, "Copy the selected character to the destination slot");
+
+            // Add minimize button
+            Button minimizeButton = new Button
+            {
+                Size = new Size(25, 25),
+                Text = "_",
+                FlatStyle = FlatStyle.Flat,
+                BackColor = Color.Transparent,
+                ForeColor = Color.White,
+                Anchor = AnchorStyles.Top | AnchorStyles.Right
+            };
+            minimizeButton.Click += (s, e) => this.WindowState = FormWindowState.Minimized;
+            minimizeButton.Location = new Point(exitButton.Location.X - 30, exitButton.Location.Y);
+            this.Controls.Add(minimizeButton);
+
+            // Configure status strip
+            _statusStrip.BackColor = Color.FromArgb(32, 32, 32);
+            _statusStrip.ForeColor = Color.White;
+            _statusLabel.Spring = true;
+            _statusStrip.Items.Add(_statusLabel);
+            this.Controls.Add(_statusStrip);
+
+            // Auto-detect and load .sl2 or .co2 file if present
+            string? savePath = FindSaveFile();
+            if (savePath != null)
+            {
+                LoadSaveFile(savePath, true);
+            }
+            else
+            {
+                UpdateStatus("Select Source and Destination files and characters", MessageType.Info);
+            }
+        }
+
+        private void UpdateStatus(string message, MessageType type)
+        {
+            _statusLabel.Text = message;
+            _statusLabel.ForeColor = type switch
+            {
+                MessageType.Error => Color.DarkOrange,
+                MessageType.Success => Color.Gold,
+                _ => Color.White
+            };
+            showAdditionalInfoMessage((int)type, message);
+        }
+
+        private enum MessageType
+        {
+            Error = MESSAGE_ERROR,
+            Info = MESSAGE_INFO,
+            Success = MESSAGE_SUCCESS
         }
 
         // Tries to read the current windows user name and if it suceeds at it, it uses it in the default Elden Ring savefile location
@@ -170,9 +328,9 @@ namespace EldenRingSaveCopy
                 copyButton.Text = "Select Source and Destination file and characters";
             }
         }
-        private void Form1_Load(object sender, EventArgs e)
+        private void MainForm_Load(object sender, EventArgs e)
         {
-            titleBar.MouseDown += Form1_MouseDown;
+            titleBar.MouseDown += MainForm_MouseDown;
 
             fromSaveSlot.DisplayMember = "CharacterName";
             fromSaveSlot.DataSource = new BindingSource() { DataSource = this.sourceSaveGames }.DataSource;
@@ -200,14 +358,9 @@ namespace EldenRingSaveCopy
 
         private void CreateFileBackup(string path, byte[] file)
         {
-            int backupCount = 2;
-            string backupPath = path.Replace("ER0000.sl2", "ER0000.backup1");
-            while (File.Exists(backupPath))
-            {
-                backupPath = backupPath.Remove(backupPath.Length - 1, 1) + $"{backupCount}";
-                backupCount++;
-            }
+            var backupPath = _backupManager.GetNextBackupPath(path);
             File.WriteAllBytes(backupPath, file);
+            UpdateStatus($"Backup created at {backupPath}", MessageType.Info);
         }
 
         private int SlotStartIndex(SaveGame save)
@@ -222,6 +375,7 @@ namespace EldenRingSaveCopy
 
         private void copyButton_Click(object sender, EventArgs e)
         {
+            copyButton.Enabled = false;
             try
             {
                 CreateFileBackup(_fileManager.TargetPath, _fileManager.TargetFile);
@@ -278,20 +432,19 @@ namespace EldenRingSaveCopy
                 toSaveSlot.SelectedIndex = targetSave.Index;
 
                 //Indicate successful copy
-                copyButton.Enabled = false;
+                UpdateStatus("Copy successful! Ensure the ER0000.bak file has been deleted from save folder prior to loading.", MessageType.Success);
                 copyButton.Text = "Copy Successful!";
                 copyButton.BackColor = Color.Gold;
-                showAdditionalInfoMessage(MESSAGE_SUCCESS, "Ensure the ER0000.bak file has been deleted from save folder prior to loading.");
             }
-            catch (Exception _e)
+            catch (Exception ex)
             {
-                copyButton.Enabled = false;
+                UpdateStatus($"Copy failed: {ex.Message}", MessageType.Error);
                 copyButton.Text = "Copy Failed!";
                 copyButton.BackColor = Color.DarkOrange;
-                byte[] err = Encoding.Default.GetBytes(_e.Message);
+
+                byte[] err = Encoding.Default.GetBytes(ex.Message);
                 File.WriteAllBytes(_fileManager.TargetPath.Replace("ER0000.sl2", "Error.log"), err);
             }
-
         }
 
         private void showAdditionalInfoMessage(int type, string message)
@@ -320,5 +473,36 @@ namespace EldenRingSaveCopy
             this.Close();
         }
 
+        private void ShowError(string message, Exception? ex = null)
+        {
+            var errorMessage = ex != null ? $"{message}: {ex.Message}" : message;
+            UpdateStatus(errorMessage, MessageType.Error);
+            LogError(errorMessage, ex);
+        }
+
+        private void LogError(string message, Exception? ex = null)
+        {
+            var baseDir = _fileManager?.TargetPath != null ? Path.GetDirectoryName(_fileManager.TargetPath) : AppDomain.CurrentDomain.BaseDirectory;
+            var logPath = Path.Combine(baseDir ?? AppDomain.CurrentDomain.BaseDirectory, "error.log");
+            var logMessage = $"[{DateTime.Now}] {message}\n";
+            if (ex != null)
+                logMessage += $"Exception: {ex}\n";
+            File.AppendAllText(logPath, logMessage);
+        }
+
+        private bool ExecuteWithErrorHandling(Action action, string successMessage, string? errorMessage = null)
+        {
+            try
+            {
+                action();
+                UpdateStatus(successMessage, MessageType.Success);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ShowError(errorMessage ?? DEFAULT_ERROR_MESSAGE, ex);
+                return false;
+            }
+        }
     }
 }

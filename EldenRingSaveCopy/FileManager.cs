@@ -1,11 +1,4 @@
-﻿using EldenRingSaveCopy.Saves;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace EldenRingSaveCopy
+﻿namespace EldenRingSaveCopy
 {
     public class FileManager
     {

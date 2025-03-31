@@ -1,7 +1,6 @@
-﻿
-namespace EldenRingSaveCopy
+﻿namespace EldenRingSaveCopy
 {
-    partial class Form1
+    partial class MainForm
     {
         /// <summary>
         /// Required designer variable.
@@ -29,7 +28,7 @@ namespace EldenRingSaveCopy
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.sourceFileLoad = new System.Windows.Forms.Button();
             this.sourceFilePath = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -49,9 +48,9 @@ namespace EldenRingSaveCopy
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.titleBar.SuspendLayout();
             this.SuspendLayout();
-            // 
+            //
             // sourceFileLoad
-            // 
+            //
             this.sourceFileLoad.Location = new System.Drawing.Point(19, 399);
             this.sourceFileLoad.Margin = new System.Windows.Forms.Padding(4);
             this.sourceFileLoad.Name = "sourceFileLoad";
@@ -60,18 +59,18 @@ namespace EldenRingSaveCopy
             this.sourceFileLoad.Text = "Browse";
             this.sourceFileLoad.UseVisualStyleBackColor = true;
             this.sourceFileLoad.Click += new System.EventHandler(this.sourceFileBrowse);
-            // 
+            //
             // sourceFilePath
-            // 
+            //
             this.sourceFilePath.Location = new System.Drawing.Point(19, 435);
             this.sourceFilePath.Margin = new System.Windows.Forms.Padding(4);
             this.sourceFilePath.Name = "sourceFilePath";
             this.sourceFilePath.ReadOnly = true;
             this.sourceFilePath.Size = new System.Drawing.Size(242, 22);
             this.sourceFilePath.TabIndex = 1;
-            // 
+            //
             // label1
-            // 
+            //
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
@@ -81,9 +80,9 @@ namespace EldenRingSaveCopy
             this.label1.Size = new System.Drawing.Size(99, 24);
             this.label1.TabIndex = 2;
             this.label1.Text = "Source file";
-            // 
+            //
             // label2
-            // 
+            //
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
@@ -93,17 +92,17 @@ namespace EldenRingSaveCopy
             this.label2.Size = new System.Drawing.Size(130, 24);
             this.label2.TabIndex = 5;
             this.label2.Text = "Destination file";
-            // 
+            //
             // targetFilePath
-            // 
+            //
             this.targetFilePath.Location = new System.Drawing.Point(337, 435);
             this.targetFilePath.Margin = new System.Windows.Forms.Padding(4);
             this.targetFilePath.Name = "targetFilePath";
             this.targetFilePath.Size = new System.Drawing.Size(242, 22);
             this.targetFilePath.TabIndex = 4;
-            // 
+            //
             // destinationFileLoad
-            // 
+            //
             this.destinationFileLoad.Location = new System.Drawing.Point(337, 399);
             this.destinationFileLoad.Margin = new System.Windows.Forms.Padding(4);
             this.destinationFileLoad.Name = "destinationFileLoad";
@@ -112,9 +111,9 @@ namespace EldenRingSaveCopy
             this.destinationFileLoad.Text = "Browse";
             this.destinationFileLoad.UseVisualStyleBackColor = true;
             this.destinationFileLoad.Click += new System.EventHandler(this.targetButtonBrowse);
-            // 
+            //
             // pictureBox1
-            // 
+            //
             this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
             this.pictureBox1.Location = new System.Drawing.Point(16, 61);
             this.pictureBox1.Margin = new System.Windows.Forms.Padding(0);
@@ -123,9 +122,9 @@ namespace EldenRingSaveCopy
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
             this.pictureBox1.TabIndex = 6;
             this.pictureBox1.TabStop = false;
-            // 
+            //
             // fromSaveSlot
-            // 
+            //
             this.fromSaveSlot.FormattingEnabled = true;
             this.fromSaveSlot.Items.AddRange(new object[] {
             "Slot 1",
@@ -145,9 +144,9 @@ namespace EldenRingSaveCopy
             this.fromSaveSlot.Size = new System.Drawing.Size(242, 24);
             this.fromSaveSlot.TabIndex = 7;
             this.fromSaveSlot.SelectedIndexChanged += new System.EventHandler(this.fromSaveSlot_SelectedIndexChanged);
-            // 
+            //
             // titleBar
-            // 
+            //
             this.titleBar.BackColor = System.Drawing.Color.White;
             this.titleBar.Controls.Add(this.title);
             this.titleBar.Controls.Add(this.exitButton);
@@ -156,9 +155,9 @@ namespace EldenRingSaveCopy
             this.titleBar.Name = "titleBar";
             this.titleBar.Size = new System.Drawing.Size(600, 31);
             this.titleBar.TabIndex = 8;
-            // 
+            //
             // title
-            // 
+            //
             this.title.AutoSize = true;
             this.title.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.title.Location = new System.Drawing.Point(209, 5);
@@ -167,9 +166,9 @@ namespace EldenRingSaveCopy
             this.title.Size = new System.Drawing.Size(140, 16);
             this.title.TabIndex = 10;
             this.title.Text = "Savegame Copy Tool";
-            // 
+            //
             // exitButton
-            // 
+            //
             this.exitButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.exitButton.FlatAppearance.BorderSize = 0;
             this.exitButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
@@ -182,9 +181,9 @@ namespace EldenRingSaveCopy
             this.exitButton.Text = "X";
             this.exitButton.UseVisualStyleBackColor = true;
             this.exitButton.Click += new System.EventHandler(this.exitButtonClick);
-            // 
+            //
             // label3
-            // 
+            //
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label3.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
@@ -194,9 +193,9 @@ namespace EldenRingSaveCopy
             this.label3.Size = new System.Drawing.Size(72, 17);
             this.label3.TabIndex = 9;
             this.label3.Text = "Copy from";
-            // 
+            //
             // label4
-            // 
+            //
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label4.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
@@ -206,9 +205,9 @@ namespace EldenRingSaveCopy
             this.label4.Size = new System.Drawing.Size(56, 17);
             this.label4.TabIndex = 11;
             this.label4.Text = "Copy to";
-            // 
+            //
             // toSaveSlot
-            // 
+            //
             this.toSaveSlot.FormattingEnabled = true;
             this.toSaveSlot.Items.AddRange(new object[] {
             "Slot 1",
@@ -228,9 +227,9 @@ namespace EldenRingSaveCopy
             this.toSaveSlot.Size = new System.Drawing.Size(242, 24);
             this.toSaveSlot.TabIndex = 10;
             this.toSaveSlot.SelectedIndexChanged += new System.EventHandler(this.toSaveSlot_SelectedIndexChanged);
-            // 
+            //
             // copyButton
-            // 
+            //
             this.copyButton.BackColor = System.Drawing.Color.DarkOrange;
             this.copyButton.Enabled = false;
             this.copyButton.FlatAppearance.BorderSize = 0;
@@ -244,9 +243,9 @@ namespace EldenRingSaveCopy
             this.copyButton.Text = "Select Source and Destination file and characters";
             this.copyButton.UseVisualStyleBackColor = false;
             this.copyButton.Click += new System.EventHandler(this.copyButton_Click);
-            // 
+            //
             // additionalInfoLabel
-            // 
+            //
             this.additionalInfoLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
             this.additionalInfoLabel.Location = new System.Drawing.Point(16, 317);
             this.additionalInfoLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
@@ -255,9 +254,9 @@ namespace EldenRingSaveCopy
             this.additionalInfoLabel.TabIndex = 13;
             this.additionalInfoLabel.Text = "Ensure the ER0000.bak file has been deleted from save folder prior to loading.";
             this.additionalInfoLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // Form1
-            // 
+            //
+            // MainForm
+            //
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(46)))), ((int)(((byte)(51)))), ((int)(((byte)(73)))));
@@ -278,10 +277,10 @@ namespace EldenRingSaveCopy
             this.Controls.Add(this.label2);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Margin = new System.Windows.Forms.Padding(4);
-            this.Name = "Form1";
+            this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Form1";
-            this.Load += new System.EventHandler(this.Form1_Load);
+            this.Text = "MainForm";
+            this.Load += new System.EventHandler(this.MainForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.titleBar.ResumeLayout(false);
             this.titleBar.PerformLayout();
